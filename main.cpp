@@ -11,14 +11,14 @@ std::atomic<int> atomic_counter{0};
 int mutex_counter = 0;
 std::mutex counter_mutex;
 
-const int NUM_THREADS = 100;           // More threads = more contention
-const int INCREMENTS_PER_THREAD = 10000;   // Still significant work
+const int NUM_THREADS = 100;          
+const int INCREMENTS_PER_THREAD = 10000;
 
 // 1. FAULTY CODE: Race condition with unsafe counter
 void unsafe_increment() {
     for (int i = 0; i < INCREMENTS_PER_THREAD; ++i) {
         int temp = unsafe_counter;
-        std::this_thread::yield(); // Or even sleep_for(nanoseconds(1))
+        std::this_thread::yield(); 
         unsafe_counter = temp + 1;
     }
 }
@@ -27,15 +27,13 @@ void unsafe_increment() {
 // 2. FIXED VERSION: Using atomic operations
 void atomic_increment() {
     for (int i = 0; i < INCREMENTS_PER_THREAD; ++i) {
-        // This is truly atomic - no other thread can interfere
-        atomic_counter++;  // Equivalent to atomic_counter.fetch_add(1)
+        atomic_counter++;
     }
 }
 
 // 3. MUTEX-BASED SYNCHRONIZATION
 void mutex_increment() {
     for (int i = 0; i < INCREMENTS_PER_THREAD; ++i) {
-        // Lock ensures only one thread can access the critical section
         std::lock_guard<std::mutex> lock(counter_mutex);
         mutex_counter++;  // Protected by mutex
     }
@@ -59,7 +57,6 @@ template<typename WorkerFunc>
 void run_threaded_test(WorkerFunc func) {
     std::vector<std::thread> threads;
     
-    // Create and start threads
     for (int i = 0; i < NUM_THREADS; ++i) {
         threads.emplace_back(func);
     }
